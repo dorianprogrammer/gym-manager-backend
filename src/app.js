@@ -9,74 +9,82 @@ import pino from "pino";
 import pinoHttp from "pino-http";
 import { randomUUID } from "crypto";
 
-import {  checkFirebaseReady } from "./config/firebase.js";
-import { errorHandler, notFoundHandler, AppError } from "./middleware/error.js";
 import { router as rootRouter } from "./routes/index.js";
+import { errorHandler, notFoundHandler, AppError } from "./middleware/error.js";
 
 const app = express();
 
-// --- Logger ---
+// --- Logger + request id ---
 const logger = pino({ level: process.env.NODE_ENV === "production" ? "info" : "debug" });
 app.use(
   pinoHttp({
     logger,
     genReqId: (req, res) => {
-      const existing = req.headers["x-request-id"];
-      const id = existing || randomUUID();
+      const id = req.headers["x-request-id"] || randomUUID();
       res.setHeader("X-Request-Id", id);
       return id;
-    }
-  })
+    },
+  }),
 );
+// expose req.id to responders
+app.use((req, res, next) => {
+  res.locals.requestId = req.id;
+  next();
+});
 
 // --- Security ---
 app.disable("x-powered-by");
-app.set("trust proxy", 1); // respect X-Forwarded-* (rate limit, IP logs behind proxies)
+app.set("trust proxy", 1); // respect X-Forwarded-* when behind a proxy
 
-app.use(helmet({
-  contentSecurityPolicy: false // API-only: typically not rendering HTML
-}));
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // API only
+    crossOriginResourcePolicy: false, // don’t block CORS responses
+  }),
+);
 
-const allowedOrigins = (process.env.CORS_ORIGIN || "").split(",").map(s => s.trim()).filter(Boolean);
-app.use(cors({
-  origin: (origin, cb) => {
-    if (!origin) return cb(null, true); // allow non-browser clients
-    if (allowedOrigins.length === 0 || allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
-      return cb(null, true);
-    }
-    cb(new AppError(403, "CORS origin not allowed"));
-  },
-  credentials: true
-}));
+// --- CORS ---
+const allowedOrigins = (process.env.CORS_ORIGIN || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true); // non-browser clients
+      if (
+        allowedOrigins.length === 0 ||
+        allowedOrigins.includes("*") ||
+        allowedOrigins.includes(origin)
+      ) {
+        return cb(null, true);
+      }
+      cb(new AppError(403, "CORS origin not allowed", { detail: origin }));
+    },
+    credentials: true,
+  }),
+);
+
+// --- Hardening + body parsing ---
 app.use(hpp());
 app.use(compression());
-
-// Body parser with sensible limits
 app.use(express.json({ limit: "100kb" }));
 app.use(express.urlencoded({ extended: false, limit: "100kb" }));
 
-// Rate limit (global base) - tweak as needed
-const globalLimiter = rateLimit({
+// --- Rate limit: apply to API only (exclude /healthz, /readyz) ---
+const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 300,
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
 });
-app.use(globalLimiter);
-
-// --- Health endpoints ---
-app.get("/health", (_req, res) => res.status(200).json({ status: "ok" }));
-app.get("/ready", async (_req, res) => {
-  const ok = await checkFirebaseReady();
-  if (!ok) return res.status(503).json({ status: "not_ready" });
-  res.status(200).json({ status: "ready" });
-});
+app.use("/v1", apiLimiter);
 
 // --- Routes ---
-app.use("/", rootRouter);
+app.use("/", rootRouter); // includes /healthz and /readyz via routes/health.js and /v1 via routes/v1
 
-// 404 + error handler
+// --- 404 + centralized errors ---
 app.use(notFoundHandler);
 app.use(errorHandler);
 

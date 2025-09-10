@@ -1,4 +1,3 @@
-// src/middleware/auth.js
 import { auth } from "../config/firebase.js";
 
 export async function requireAuth(req, _res, next) {

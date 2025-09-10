@@ -1,4 +1,3 @@
-// src/config/firebase.js
 import { initializeApp, cert, applicationDefault } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
@@ -23,7 +22,7 @@ try {
   const credential = buildCredentialFromEnv() ?? applicationDefault();
   app = initializeApp({
     credential,
-    // storageBucket: process.env.FIREBASE_STORAGE_BUCKET, // optional
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET, // optional
   });
   initialized = true;
 } catch (e) {
