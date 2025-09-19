@@ -4,12 +4,14 @@ import { ok } from "../../utils/respond.js";
 import { requireAuth } from "../../middleware/auth.js";
 
 import { router as users } from "./users.js";
+import { router as members } from "./members.js";
 // import { router as health } from "./health.js";
 
 const router = Router();
 
 // Sub-routers
 router.use("/users", users);
+router.use("/members", members);
 // router.use("/health", health);
 
 /**

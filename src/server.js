@@ -7,6 +7,7 @@ const logger = pino({ level: process.env.NODE_ENV === "production" ? "info" : "d
 const PORT = Number(process.env.PORT) || 8080;
 
 const server = app.listen(PORT, () => {
+  console.log('PORT :>> ', PORT);
   logger.info({ port: PORT, env: process.env.NODE_ENV }, "API listening");
 });
 
