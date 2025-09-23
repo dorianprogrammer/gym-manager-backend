@@ -2,6 +2,8 @@ import { initializeApp, cert, applicationDefault } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
+import * as admin from "firebase-admin";
+
 
 function buildCredentialFromEnv() {
   const { FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY } = process.env;
@@ -36,6 +38,8 @@ export const auth = app ? getAuth(app) : undefined;
 export const db = app ? getFirestore(app) : undefined;
 export const storage = app ? getStorage(app) : undefined;
 export const bucket = storage?.bucket();
+export { admin };
+
 
 export async function checkFirebaseReady() {
   if (!initialized || !auth) return false;

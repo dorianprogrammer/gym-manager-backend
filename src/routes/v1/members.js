@@ -4,36 +4,55 @@ import { validate } from "../../utils/validate.js";
 import { z } from "zod";
 import asyncHandler from "../../utils/async.js";
 import { created } from "../../utils/respond.js";
+import { countActiveMembersByGym, countCheckinsTodayByGym, countMembersByGym, listMembersByGym } from "../../services/members.js";
 
 const router = Router();
 
 // Validation schema
-const profileSchema = z.object({
-  body: z.object({}).passthrough(),
-  query: z.object({}).passthrough(),
-  params: z.object({}).passthrough(),
+const membersSchema = z.object({
+  body: z.object({
+    gymId: z
+      .string({
+        required_error: "gymId is required",
+        invalid_type_error: "gymId must be a string",
+      })
+      .min(1, "gymId cannot be empty"),
+  }),
 });
 
 // POST /v1/members
 router.post(
   "/",
   requireAuth,
-  validate(profileSchema),
+  validate(membersSchema),
   asyncHandler(async (req, res) => {
     const data = req.validated.body;
-
-    console.log('data :>> ', data);
-
-    
-
-    // const { displayName, bio } = req.validated.body;
-    // const uid = req.user.uid;
-
-    // await setUserProfile(uid, { displayName, bio: bio ?? "" });
-    // const profile = await getUserProfile(uid);
+    const { members } = await listMembersByGym({ gymId: data?.gymId });
 
     res.setHeader("Location", "/v1/members");
-    return created(res, { message: "Member created" });
+    return created(res, { message: "Member created", members });
+  }),
+);
+
+// POST /v1/members/stats
+router.post(
+  "/stats",
+  requireAuth,
+  validate(membersSchema),
+  asyncHandler(async (req, res) => {
+    const { gymId } = req.validated.body;
+
+    const [totalMembers, activeMembers, checkinsToday] = await Promise.all([
+      countMembersByGym({ gymId }),
+      countActiveMembersByGym({ gymId }),
+      countCheckinsTodayByGym({ gymId }),
+    ]);
+
+    return res.json({
+      totalMembers,
+      activeMembers,
+      checkinsToday,
+    });
   }),
 );
 
