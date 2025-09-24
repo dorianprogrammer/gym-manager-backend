@@ -5,19 +5,14 @@ import { requireAuth } from "../../middleware/auth.js";
 
 import { router as users } from "./users.js";
 import { router as members } from "./members.js";
-// import { router as health } from "./health.js";
+import { router as stats } from "./stats.js";
 
 const router = Router();
 
-// Sub-routers
 router.use("/users", users);
 router.use("/members", members);
-// router.use("/health", health);
+router.use("/stats", stats);
 
-/**
- * GET /v1/me
- * Minimal identity endpoint for the current authenticated user.
- */
 router.get(
   "/me",
   requireAuth,

@@ -40,7 +40,7 @@ function drainAndClose() {
 
 async function shutdown(reason, code = 0) {
   try {
-    logger.warn({ reason }, "Shutdown requested");
+    // logger.warn({ reason }, "Shutdown requested");
     await drainAndClose();
 
     // Optional external deps cleanup
@@ -51,7 +51,7 @@ async function shutdown(reason, code = 0) {
 
     process.exit(code);
   } catch (err) {
-    logger.fatal({ err }, "Error during shutdown");
+    // logger.fatal({ err }, "Error during shutdown");
     process.exit(1);
   }
 }
@@ -68,16 +68,16 @@ process.once("SIGUSR2", async () => {
 
 // Crash safety: log, attempt graceful close, then exit non-zero
 process.on("uncaughtException", (err) => {
-  logger.fatal({ err }, "Uncaught exception");
+  // logger.fatal({ err }, "Uncaught exception");
   shutdown("uncaughtException", 1);
 });
 process.on("unhandledRejection", (reason) => {
-  logger.fatal({ err: reason }, "Unhandled promise rejection");
+  // logger.fatal({ err: reason }, "Unhandled promise rejection");
   shutdown("unhandledRejection", 1);
 });
 
 // Optional: listen error handler
 server.on("error", (err) => {
-  logger.fatal({ err }, "HTTP server error");
+  // logger.fatal({ err }, "HTTP server error");
   process.exit(1);
 });

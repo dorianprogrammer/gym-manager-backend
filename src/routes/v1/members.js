@@ -4,7 +4,7 @@ import { validate } from "../../utils/validate.js";
 import { z } from "zod";
 import asyncHandler from "../../utils/async.js";
 import { created } from "../../utils/respond.js";
-import { countActiveMembersByGym, countCheckinsTodayByGym, countMembersByGym, listMembersByGym } from "../../services/members.js";
+import { listMembersByGym } from "../../services/members.js";
 
 const router = Router();
 
@@ -31,28 +31,6 @@ router.post(
 
     res.setHeader("Location", "/v1/members");
     return created(res, { message: "Member created", members });
-  }),
-);
-
-// POST /v1/members/stats
-router.post(
-  "/stats",
-  requireAuth,
-  validate(membersSchema),
-  asyncHandler(async (req, res) => {
-    const { gymId } = req.validated.body;
-
-    const [totalMembers, activeMembers, checkinsToday] = await Promise.all([
-      countMembersByGym({ gymId }),
-      countActiveMembersByGym({ gymId }),
-      countCheckinsTodayByGym({ gymId }),
-    ]);
-
-    return res.json({
-      totalMembers,
-      activeMembers,
-      checkinsToday,
-    });
   }),
 );
 
