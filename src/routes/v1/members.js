@@ -3,7 +3,7 @@ import { requireAuth } from "../../middleware/auth.js";
 import { validate } from "../../utils/validate.js";
 import { z } from "zod";
 import asyncHandler from "../../utils/async.js";
-import { created } from "../../utils/respond.js";
+import { created, ok } from "../../utils/respond.js";
 import { listMembersByGym } from "../../services/members.js";
 
 const router = Router();
@@ -30,7 +30,7 @@ router.post(
     const { members } = await listMembersByGym({ gymId: data?.gymId });
 
     res.setHeader("Location", "/v1/members");
-    return created(res, { message: "Member created", members });
+    return ok(res, members);
   }),
 );
 

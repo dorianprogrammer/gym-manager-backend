@@ -1,6 +1,6 @@
 export function ok(res, data, meta = {}) {
   return res.status(200).json({
-    status: "ok",
+    status: 200,
     data,
     meta: {
       requestId: res.locals.requestId,
@@ -12,7 +12,7 @@ export function ok(res, data, meta = {}) {
 
 export function created(res, data, meta = {}) {
   return res.status(201).json({
-    status: "ok",
+    status: 200,
     data,
     meta: {
       requestId: res.locals.requestId,
