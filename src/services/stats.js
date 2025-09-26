@@ -37,25 +37,32 @@ export async function countCheckinsTodayByGym({ gymId }) {
 }
 
 export async function sumDailyRevenueByGym({ gymId, now = new Date() }) {
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  try {
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 
-  const snap = await db
-    .collection("gyms")
-    .doc(gymId)
-    .collection("payments")
-    .where("createdAt", ">=", Timestamp.fromDate(start))
-    .where("createdAt", "<", Timestamp.fromDate(end))
-    .get();
+    const snap = await db
+      .collection("gyms")
+      .doc(gymId)
+      .collection("payments ")
+      .where("createdAt", ">=", Timestamp.fromDate(start))
+      .where("createdAt", "<", Timestamp.fromDate(end))
+      .get();
 
-  let total = 0;
-  snap.forEach((d) => {
-    const data = d.data();
-    if (data?.status !== "confirmed") return;
-    const a = data.amount;
-    const n = typeof a === "string" ? Number(a) : a;
-    if (typeof n === "number" && !Number.isNaN(n)) total += n;
-  });
+    let total = 0;
 
-  return total;
+    snap.forEach((d) => {
+      const data = d.data();
+
+      if (data?.status != "confirmed") return;
+      const a = data.amount;
+      const n = typeof a === "string" ? Number(a) : a;
+      if (typeof n === "number" && !Number.isNaN(n)) total += n;
+    });
+
+    return total;
+  } catch (error) {
+    console.log("error :>> ", error);
+    return 0;
+  }
 }

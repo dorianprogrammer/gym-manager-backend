@@ -3,12 +3,12 @@ import pino from "pino";
 // Optional: if you expose a cleanup in your Firebase config
 // import { closeFirebase } from "./config/firebase.js";
 
-const logger = pino({ level: process.env.NODE_ENV === "production" ? "info" : "debug" });
+// const logger = pino({ level: process.env.NODE_ENV === "production" ? "info" : "debug" });
 const PORT = Number(process.env.PORT) || 8080;
 
 const server = app.listen(PORT, () => {
   console.log('PORT :>> ', PORT);
-  logger.info({ port: PORT, env: process.env.NODE_ENV }, "API listening");
+  // logger.info({ port: PORT, env: process.env.NODE_ENV }, "API listening");
 });
 
 // ---- Harden HTTP server timeouts (protect against slowloris, ALB idle edges)
@@ -27,7 +27,7 @@ server.on("connection", (socket) => {
 function drainAndClose() {
   return new Promise((resolve) => {
     server.close(() => {
-      logger.info("HTTP server closed");
+      // logger.info("HTTP server closed");
       resolve();
     });
     // Nudge idle keep-alive sockets to close quickly

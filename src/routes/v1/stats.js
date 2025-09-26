@@ -40,6 +40,8 @@ router.post(
         sumDailyRevenueByGym({ gymId }),
       ]);
 
+      console.log('monthlyRevenue :>> ', monthlyRevenue);
+
       return res.json({
         totalMembers,
         activeMembers,

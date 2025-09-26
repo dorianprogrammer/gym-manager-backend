@@ -15,7 +15,7 @@ import { errorHandler, notFoundHandler, AppError } from "./middleware/error.js";
 const app = express();
 
 // --- Logger + request id ---
-const logger = pino({ level: process.env.NODE_ENV === "production" ? "info" : "debug" });
+const logger = pino({ level: process.env.NODE_ENV === "production" ? "info" : "silent" });
 app.use(
   pinoHttp({
     logger,
